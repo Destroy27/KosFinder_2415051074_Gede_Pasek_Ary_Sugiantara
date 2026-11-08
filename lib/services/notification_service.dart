@@ -1,9 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../app_keys.dart';
 import '../config/supabase_config.dart';
+import '../pages/kos_detail_page.dart';
 
 /// Handler untuk pesan yang diterima saat aplikasi di background atau
 /// terminated. Wajib berupa fungsi top-level dan memakai `vm:entry-point`.
@@ -60,6 +63,15 @@ class NotificationService extends ChangeNotifier {
       await requestPermission();
       await getToken();
       listenTokenRefresh();
+
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      await setupInteractedMessage();
     } catch (error) {
       _error = error.toString();
       notifyListeners();
@@ -126,5 +138,48 @@ class NotificationService extends ChangeNotifier {
     } catch (error) {
       debugPrint('Gagal menyimpan token: $error');
     }
+  }
+
+  void _handleForegroundMessage(RemoteMessage message) {
+    debugPrint('[FOREGROUND] title: ${message.notification?.title}');
+    debugPrint('[FOREGROUND] body : ${message.notification?.body}');
+
+    final String title = message.notification?.title ?? 'Notifikasi';
+    final String body = message.notification?.body ?? '';
+    messengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text('$title\n$body'),
+        action: message.data['kos_id'] == null
+            ? null
+            : SnackBarAction(
+                label: 'Lihat',
+                onPressed: () => _openKos(message.data['kos_id'].toString()),
+              ),
+      ),
+    );
+  }
+
+  /// Menangani notifikasi yang dibuka dari kondisi terminated (getInitialMessage)
+  /// maupun background (onMessageOpenedApp).
+  Future<void> setupInteractedMessage() async {
+    final RemoteMessage? initial = await _messaging.getInitialMessage();
+    if (initial != null) _handleTap(initial);
+
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleTap);
+  }
+
+  void _handleTap(RemoteMessage message) {
+    final Object? kosId = message.data['kos_id'];
+    if (kosId == null) return;
+    _openKos(kosId.toString());
+  }
+
+  void _openKos(String kosId) {
+    navigatorKey.currentState?.push(
+      MaterialPageRoute<void>(
+        builder: (_) => KosDetailPage(kosId: kosId),
+        settings: const RouteSettings(name: '/kos-detail'),
+      ),
+    );
   }
 }
