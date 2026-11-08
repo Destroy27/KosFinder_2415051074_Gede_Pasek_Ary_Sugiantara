@@ -17,11 +17,13 @@
 class SupabaseConfig {
   const SupabaseConfig._();
 
-  /// Contoh: 'https://abcdefghijklm.supabase.co'
-  static const String url = 'https://YOUR_PROJECT_ID.supabase.co';
+  /// Project Supabase: KosFinder_2415051074_Gede_Pasek_Ary_Sugiantara
+  /// Region: ap-northeast-1 (Tokyo)
+  static const String url = 'https://hkhtsbtyhrrmpsuobnsx.supabase.co';
 
-  /// Contoh: 'sb_publishable_xxxxxxxxxxxxxxxxxxxx'
-  static const String publishableKey = 'YOUR_SUPABASE_PUBLISHABLE_KEY';
+  /// Key publishable (aman di client selama RLS aktif).
+  static const String publishableKey =
+      'sb_publishable_OBy5eURx2Iw7SE4KZXT4HA_r-FE5Vxd';
 
   /// Nama tabel utama pada database PostgreSQL Supabase.
   static const String kosTable = 'kos';
